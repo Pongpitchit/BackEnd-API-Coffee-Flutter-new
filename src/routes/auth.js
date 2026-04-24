@@ -10,7 +10,7 @@ const signRefresh = (payload) => jwt.sign(payload, process.env.JWT_REFRESH_SECRE
 
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
-  const { name, email, password, phone } = req.body;
+  const { name, email, password, phone, role } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ success: false, message: 'name, email, password required' });
   }
@@ -23,8 +23,8 @@ router.post('/register', async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
     const [result] = await pool.query(
-      'INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)',
-      [name, email, hash, phone || null]
+      'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
+      [name, email, hash, phone || null, role || 'customer']
     );
 
     return res.status(201).json({ success: true, message: 'Registered', userId: result.insertId });
