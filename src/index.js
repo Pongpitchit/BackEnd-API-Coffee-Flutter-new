@@ -15,6 +15,54 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// ── Temp Route: Update User Role ───────────────────────────────────────────────
+app.post('/api/temp-update-role', async (req, res) => {
+  const { email, role } = req.body;
+  if (!email || !role) {
+    return res.status(400).json({ success: false, message: 'email and role required' });
+  }
+  try {
+    const pool = (await import('./config/db.js')).default;
+    const [result] = await pool.query(
+      'UPDATE users SET role = ? WHERE email = ?',
+      [role, email]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    return res.json({ success: true, message: 'Role updated' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── Override Register Route to Support Role ────────────────────────────────────
+app.post('/api/auth/register', async (req, res) => {
+  const { name, email, password, phone, role } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, message: 'name, email, password required' });
+  }
+
+  try {
+    const pool = (await import('./config/db.js')).default;
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existing.length) {
+      return res.status(409).json({ success: false, message: 'Email already registered' });
+    }
+
+    const bcrypt = (await import('bcryptjs')).default;
+    const hash = await bcrypt.hash(password, 10);
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
+      [name, email, hash, phone || null, role || 'customer']
+    );
+
+    return res.status(201).json({ success: true, message: 'Registered', userId: result.insertId });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',    authRoutes);
 app.use('/api/users',   userRoutes);

@@ -5,6 +5,26 @@ import { authenticate, requireAdmin, requireOwnerOrAdmin } from '../middleware/a
 
 const router = Router();
 
+// ── POST /api/users/update-role (temporary) ───────────────────────────────────
+router.post('/update-role', async (req, res) => {
+  const { email, role } = req.body;
+  if (!email || !role) {
+    return res.status(400).json({ success: false, message: 'email and role required' });
+  }
+  try {
+    const [result] = await pool.query(
+      'UPDATE users SET role = ? WHERE email = ?',
+      [role, email]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    return res.json({ success: true, message: 'Role updated' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ── GET /api/users  (admin only) ─────────────────────────────────────────────
 router.get('/', authenticate, requireAdmin, async (req, res) => {
   try {
