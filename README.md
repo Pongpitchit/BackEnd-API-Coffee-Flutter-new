@@ -1,8 +1,6 @@
 # ☕ Coffee Shop API v2.0
 **DIT207 Final Project** — Node.js + Express + MySQL (TiDB Cloud) + JWT
 
-#POSTMAN ENDPOINT 
-https://scottxsh.postman.co/workspace/DIT323-API~afb58d47-fa86-42c2-b24f-6dc48d5c1c31/collection/46027124-7b99c66c-c964-4578-b680-62e2c4dc8879?action=share&source=copy-link&creator=46027124
 ---
 
 👉 [Open Postman Collection]
